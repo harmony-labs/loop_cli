@@ -1,6 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
-use loop_lib::{parse_config, run, LoopConfig};
+use loop_lib::{parse_config, run};
 use std::path::PathBuf;
 
 #[derive(Parser)]

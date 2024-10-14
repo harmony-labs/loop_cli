@@ -5,13 +5,6 @@ use std::process::Command;
 use rayon::prelude::*;
 use serde_json;
 
-pub struct LoopConfig {
-    pub directories: Vec<String>,
-    pub ignore: Vec<String>,
-    pub verbose: bool,
-    pub silent: bool,
-    pub parallel: bool,
-}
 
 pub fn run(config: &LoopConfig, command: &str) -> Result<()> {
     let dirs = expand_directories(&config.directories, &config.ignore)?;
