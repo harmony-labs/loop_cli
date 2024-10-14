@@ -11,5 +11,5 @@ edition.workspace = true
 
 [dependencies]
 anyhow = "1.0"
-clap = { version = "4.0", features = ["derive"] }
+clap = { version = "4.3", features = ["derive"] }
 loop_lib = { path = "../loop_lib" }
