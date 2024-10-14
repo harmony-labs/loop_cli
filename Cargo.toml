@@ -4,12 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-[package]
-name = "loop"
-version.workspace = true
-edition.workspace = true
-
-[dependencies]
 anyhow = "1.0"
 clap = { version = "4.3", features = ["derive"] }
 loop_lib = { path = "../loop_lib" }
+
+[[bin]]
+name = "loop"
+path = "src/main.rs"
