@@ -6,22 +6,36 @@ use std::process::Command;
 
 #[derive(Debug, Deserialize)]
 pub struct LoopConfig {
+    #[serde(default)]
     pub directories: Vec<String>,
+    #[serde(default)]
+    pub ignore: Vec<String>,
+}
+
+impl Default for LoopConfig {
+    fn default() -> Self {
+        LoopConfig {
+            directories: vec![],
+            ignore: vec![".git".to_string()],
+        }
+    }
 }
 
 pub fn run(config: &LoopConfig, command: &str) -> Result<()> {
     for dir in &config.directories {
-        println!("Executing in directory: {}", dir);
-        let output = Command::new("sh")
-            .arg("-c")
-            .arg(command)
-            .current_dir(dir)
-            .output()
-            .with_context(|| format!("Failed to execute command in directory: {}", dir))?;
+        if !config.ignore.iter().any(|ignored| dir.contains(ignored)) {
+            println!("Executing in directory: {}", dir);
+            let output = Command::new("sh")
+                .arg("-c")
+                .arg(command)
+                .current_dir(dir)
+                .output()
+                .with_context(|| format!("Failed to execute command in directory: {}", dir))?;
 
-        println!("Status: {}", output.status);
-        println!("Stdout: {}", String::from_utf8_lossy(&output.stdout));
-        println!("Stderr: {}", String::from_utf8_lossy(&output.stderr));
+            println!("Status: {}", output.status);
+            println!("Stdout: {}", String::from_utf8_lossy(&output.stdout));
+            println!("Stderr: {}", String::from_utf8_lossy(&output.stderr));
+        }
     }
     Ok(())
 }
@@ -46,10 +60,24 @@ mod tests {
         let dir = tempdir()?;
         let config_path = dir.path().join(".looprc");
         let mut file = File::create(&config_path)?;
-        writeln!(file, r#"{{"directories": ["dir1", "dir2"]}}"#)?;
+        writeln!(file, r#"{{"directories": ["dir1", "dir2"], "ignore": [".git", "node_modules"]}}"#)?;
 
         let config = parse_config(&config_path)?;
         assert_eq!(config.directories, vec!["dir1", "dir2"]);
+        assert_eq!(config.ignore, vec![".git", "node_modules"]);
+        Ok(())
+    }
+
+    #[test]
+    fn test_default_config() -> Result<()> {
+        let dir = tempdir()?;
+        let config_path = dir.path().join(".looprc");
+        let mut file = File::create(&config_path)?;
+        writeln!(file, r#"{{}}"#)?;
+
+        let config = parse_config(&config_path)?;
+        assert_eq!(config.directories, Vec::<String>::new());
+        assert_eq!(config.ignore, vec![".git"]);
         Ok(())
     }
 }
