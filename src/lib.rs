@@ -1,9 +1,9 @@
-use anyhow::{Result, Context};
-use std::path::{Path, PathBuf};
-use walkdir::WalkDir;
-use std::process::Command;
+use anyhow::Result;
+use loop_lib::LoopConfig;
 use rayon::prelude::*;
-use serde_json;
+use walkdir::WalkDir;
+use std::path::PathBuf;
+use std::process::Command;
 
 
 pub fn run(config: &LoopConfig, command: &str) -> Result<()> {
