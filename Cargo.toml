@@ -6,8 +6,8 @@ edition = "2021"
 [dependencies]
 [package]
 name = "loop"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
 anyhow = "1.0"
