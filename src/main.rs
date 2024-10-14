@@ -24,6 +24,9 @@ struct Cli {
     #[arg(long)]
     parallel: bool,
 
+    #[arg(long)]
+    add_aliases_to_global_looprc: bool,
+
     #[arg(trailing_var_arg = true)]
     command: Vec<String>,
 }
@@ -44,6 +47,7 @@ fn main() -> Result<()> {
     config.verbose = cli.verbose;
     config.silent = cli.silent;
     config.parallel = cli.parallel;
+    config.add_aliases_to_global_looprc = cli.add_aliases_to_global_looprc;
 
     // If no directories specified, use current and all child directories
     if config.directories.is_empty() {

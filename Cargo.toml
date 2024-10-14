@@ -7,6 +7,9 @@ edition = "2021"
 anyhow = "1.0"
 clap = { version = "4.3", features = ["derive"] }
 loop_lib = { path = "../loop_lib" }
+rayon = "1.7"
+walkdir = "2.3"
+serde_json = "1.0"
 
 [[bin]]
 name = "loop"
