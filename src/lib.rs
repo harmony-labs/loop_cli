@@ -1,5 +1,4 @@
 use anyhow::{Context, Result};
-use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -199,7 +198,7 @@ pub fn run(config: &LoopConfig, command: &str) -> Result<()> {
         return add_aliases_to_global_looprc();
     }
 
-    let dirs = expand_directories(&config.directories, &config.ignore)?;
+    // let dirs = expand_directories(&config.directories, &config.ignore)?;
     let results = Arc::new(Mutex::new(Vec::new()));
     let aliases = get_aliases();
 
@@ -209,11 +208,11 @@ pub fn run(config: &LoopConfig, command: &str) -> Result<()> {
         Ok(())
     };
 
-    if config.parallel {
-        dirs.par_iter().try_for_each(run_command)?;
-    } else {
-        dirs.iter().try_for_each(run_command)?;
-    }
+    // if config.parallel {
+    //     &config.directories.par_iter().try_for_each(run_command)?;
+    // } else {
+        config.directories.iter().map(PathBuf::from).try_for_each(|dir| run_command(&dir))?;
+    // }
 
     let results = results.lock().unwrap();
     let total = results.len();
@@ -242,26 +241,26 @@ pub fn run(config: &LoopConfig, command: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn expand_directories(directories: &[String], ignore: &[String]) -> Result<Vec<PathBuf>> {
-    let mut expanded = Vec::new();
+// pub fn expand_directories(directories: &[String], ignore: &[String]) -> Result<Vec<PathBuf>> {
+//     let mut expanded = Vec::new();
 
-    for dir in directories {
-        let dir_path = PathBuf::from(dir);
-        if dir_path.is_dir() && !should_ignore(&dir_path, ignore) {
-            expanded.push(dir_path.clone());
+//     for dir in directories {
+//         let dir_path = PathBuf::from(dir);
+//         if dir_path.is_dir() && !should_ignore(&dir_path, ignore) {
+//             expanded.push(dir_path.clone());
 
-            for entry in fs::read_dir(&dir_path)? {
-                let entry = entry?;
-                let path = entry.path();
-                if path.is_dir() && !should_ignore(&path, ignore) {
-                    expanded.push(path);
-                }
-            }
-        }
-    }
+//             for entry in fs::read_dir(&dir_path)? {
+//                 let entry = entry?;
+//                 let path = entry.path();
+//                 if path.is_dir() && !should_ignore(&path, ignore) {
+//                     expanded.push(path);
+//                 }
+//             }
+//         }
+//     }
 
-    Ok(expanded)
-}
+//     Ok(expanded)
+// }
 
 pub fn should_ignore(path: &Path, ignore: &[String]) -> bool {
     ignore.iter().any(|i| path.to_string_lossy().contains(i))
