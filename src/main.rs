@@ -1,5 +1,5 @@
 use anyhow::Result;
-use clap::Parser;
+use clap::{Parser, CommandFactory};
 use loop_lib::{expand_directories, parse_config, run, LoopConfig};
 use std::path::PathBuf;
 
