@@ -1,6 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
-use loop_lib::{expand_directories, parse_config, run};
+use loop_lib::{expand_directories, parse_config, run, LoopConfig};
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -35,7 +35,11 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
     
     let config_path = cli.config.unwrap_or_else(|| PathBuf::from(".looprc"));
-    let mut config = parse_config(&config_path)?;
+    let mut config = if config_path.exists() {
+        parse_config(&config_path)?
+    } else {
+        LoopConfig::default()
+    };
 
     // Update config with CLI options
     if let Some(include) = cli.include {
@@ -44,6 +48,7 @@ fn main() -> Result<()> {
     if let Some(exclude) = cli.exclude {
         config.ignore.extend(exclude);
     }
+
     config.verbose = cli.verbose;
     config.silent = cli.silent;
     config.parallel = cli.parallel;
