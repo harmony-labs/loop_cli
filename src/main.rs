@@ -1,5 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
+use r#loop::expand_directories;
 use loop_lib::{parse_config, run};
 use std::path::PathBuf;
 
@@ -51,7 +52,8 @@ fn main() -> Result<()> {
 
     // If no directories specified, use current and all child directories
     if config.directories.is_empty() {
-        config.directories = vec![".".to_string()];
+        let dirs = expand_directories(&[".".to_string()], &config.ignore)?;
+        config.directories = dirs;
     }
 
     let command = cli.command.join(" ");

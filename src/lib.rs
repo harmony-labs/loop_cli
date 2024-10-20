@@ -1,7 +1,6 @@
 use anyhow::Result;
-use loop_lib::LoopConfig;
+use loop_lib::{should_ignore, LoopConfig};
 use rayon::prelude::*;
-use walkdir::WalkDir;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -11,11 +10,11 @@ pub fn run(config: &LoopConfig, command: &str) -> Result<()> {
 
     if config.parallel {
         dirs.par_iter().for_each(|dir| {
-            run_command(dir, command, config.verbose).unwrap();
+            run_command(&PathBuf::from(dir), command, config.verbose).unwrap();
         });
     } else {
         for dir in dirs {
-            run_command(&dir, command, config.verbose)?;
+            run_command(&PathBuf::from(&dir), command, config.verbose)?;
         }
     }
 
@@ -40,16 +39,22 @@ fn run_command(dir: &PathBuf, command: &str, verbose: bool) -> Result<()> {
     Ok(())
 }
 
-fn expand_directories(directories: &[String], ignore: &[String]) -> Result<Vec<PathBuf>> {
+pub fn expand_directories(directories: &[String], ignore: &[String]) -> Result<Vec<String>> {
     let mut expanded = Vec::new();
 
+    use std::fs;
+
     for dir in directories {
-        for entry in WalkDir::new(dir).follow_links(true).into_iter().filter_entry(|e| {
-            !ignore.iter().any(|i| e.path().to_string_lossy().contains(i))
-        }) {
-            let entry = entry?;
-            if entry.file_type().is_dir() {
-                expanded.push(entry.path().to_path_buf());
+        let dir_path = PathBuf::from(dir);
+        if dir_path.is_dir() && !should_ignore(&dir_path, ignore) {
+            expanded.push(dir_path.to_string_lossy().into_owned());
+
+            for entry in fs::read_dir(&dir_path)? {
+                let entry = entry?;
+                let path = entry.path();
+                if path.is_dir() && !should_ignore(&path, ignore) {
+                    expanded.push(path.to_string_lossy().into_owned());
+                }
             }
         }
     }
