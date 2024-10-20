@@ -60,6 +60,10 @@ fn main() -> Result<()> {
         config.directories = dirs;
     }
 
+    if cli.command.is_empty() {
+        Cli::command().print_help()?;
+        return Ok(());
+    }
     let command = cli.command.join(" ");
     run(&config, &command)?;
 
