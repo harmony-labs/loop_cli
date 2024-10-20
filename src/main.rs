@@ -9,22 +9,22 @@ struct Cli {
     #[arg(short, long, value_name = "FILE")]
     config: Option<PathBuf>,
 
-    #[arg(short, long)]
+    #[arg(short, long, help = "Specify directories to include (overrides config file)")]
     include: Option<Vec<String>>,
 
-    #[arg(short, long)]
+    #[arg(short, long, help = "Specify directories to exclude (adds to config file exclusions)")]
     exclude: Option<Vec<String>>,
 
-    #[arg(short, long)]
+    #[arg(short, long, help = "Enable verbose output")]
     verbose: bool,
 
-    #[arg(short, long)]
+    #[arg(short, long, help = "Enable silent mode (suppress all output)")]
     silent: bool,
 
-    #[arg(long)]
+    #[arg(long, help = "Execute commands in parallel")]
     parallel: bool,
 
-    #[arg(long)]
+    #[arg(long, help = "Add shell aliases to the global .looprc file")]
     add_aliases_to_global_looprc: bool,
 
     #[arg(trailing_var_arg = true)]
