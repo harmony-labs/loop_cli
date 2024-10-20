@@ -153,3 +153,24 @@ fn test_execute_command_in_directory() {
     assert!(!result.success);
     assert_eq!(result.exit_code, 1);
 }
+#[test]
+fn test_run_without_looprc() {
+    let temp_dir = TempDir::new().unwrap();
+    let dir1 = temp_dir.path().join("dir1");
+    let dir2 = temp_dir.path().join("dir2");
+    fs::create_dir(&dir1).unwrap();
+    fs::create_dir(&dir2).unwrap();
+
+    // Run without a .looprc file
+    let config = LoopConfig {
+        directories: vec![temp_dir.path().to_str().unwrap().to_string()],
+        ignore: vec![],
+        verbose: false,
+        silent: true,
+        parallel: false,
+        add_aliases_to_global_looprc: false,
+    };
+
+    let result = run(&config, "echo test");
+    assert!(result.is_ok());
+}
