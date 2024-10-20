@@ -1,5 +1,5 @@
 use anyhow::Result;
-use loop_lib::{should_ignore, LoopConfig};
+use loop_lib::{expand_directories, LoopConfig};
 use rayon::prelude::*;
 use std::path::PathBuf;
 use std::process::Command;
@@ -37,29 +37,6 @@ fn run_command(dir: &PathBuf, command: &str, verbose: bool) -> Result<()> {
     }
 
     Ok(())
-}
-
-pub fn expand_directories(directories: &[String], ignore: &[String]) -> Result<Vec<String>> {
-    let mut expanded = Vec::new();
-
-    use std::fs;
-
-    for dir in directories {
-        let dir_path = PathBuf::from(dir);
-        if dir_path.is_dir() && !should_ignore(&dir_path, ignore) {
-            expanded.push(dir_path.to_string_lossy().into_owned());
-
-            for entry in fs::read_dir(&dir_path)? {
-                let entry = entry?;
-                let path = entry.path();
-                if path.is_dir() && !should_ignore(&path, ignore) {
-                    expanded.push(path.to_string_lossy().into_owned());
-                }
-            }
-        }
-    }
-
-    Ok(expanded)
 }
 
 pub fn parse_config(config_path: &PathBuf) -> Result<LoopConfig> {

@@ -1,7 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
-use r#loop::expand_directories;
-use loop_lib::{parse_config, run};
+use loop_lib::{expand_directories, parse_config, run};
 use std::path::PathBuf;
 
 #[derive(Parser)]
