@@ -2,39 +2,57 @@ use anyhow::Result;
 use clap::{Parser, CommandFactory};
 use loop_lib::{expand_directories, parse_config, run, LoopConfig};
 use std::path::PathBuf;
+use colored::*;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
-    #[arg(short, long, value_name = "FILE")]
-    config: Option<PathBuf>,
-
-    #[arg(short, long, help = "Specify directories to include (overrides config file)")]
-    include: Option<Vec<String>>,
-
-    #[arg(short, long, help = "Specify directories to exclude (adds to config file exclusions)")]
-    exclude: Option<Vec<String>>,
-
-    #[arg(short, long, help = "Enable verbose output")]
-    verbose: bool,
-
-    #[arg(short, long, help = "Enable silent mode (suppress all output)")]
-    silent: bool,
-
-    #[arg(long, help = "Execute commands in parallel")]
-    parallel: bool,
-
-    #[arg(long, help = "Add shell aliases to the global .looprc file")]
+    #[arg(long, help = "Add shell aliases to the global .looprc file, enabling aliases within commands")]
     add_aliases_to_global_looprc: bool,
 
     #[arg(trailing_var_arg = true)]
     command: Vec<String>,
+
+    #[arg(short, long, value_name = "FILE")]
+    config: Option<PathBuf>,
+
+    #[arg(short, long, help = "Specify directories to exclude (adds to config file exclusions)")]
+    exclude: Option<Vec<String>>,
+
+    #[arg(short, long, help = "Specify directories to include (overrides config file)")]
+    include: Option<Vec<String>>,
+
+    #[arg(long, help = "Execute commands in parallel")]
+    parallel: bool,
+
+    #[arg(short, long, help = "Enable silent mode (suppress all output)")]
+    silent: bool,
+
+    #[arg(short, long, help = "Enable verbose output")]
+    verbose: bool,
 }
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
     
     let config_path = cli.config.unwrap_or_else(|| PathBuf::from(".looprc"));
+
+    if cli.command.is_empty() {
+        Cli::command().print_help()?;
+        std::process::exit(0);
+    }
+
+    let command = cli.command.join(" ");
+
+    // Parse the .meta file
+    let absolute_path = std::env::current_dir()?.join(&config_path);
+
+    if cli.verbose {
+        println!("{}", "Verbose mode enabled".green());
+        println!("\nResolved config file path: {}", absolute_path.display());
+        println!("Executing command: {}", command);
+    }
+
     let mut config = if config_path.exists() {
         parse_config(&config_path)?
     } else {
@@ -60,11 +78,6 @@ fn main() -> Result<()> {
         config.directories = dirs;
     }
 
-    if cli.command.is_empty() {
-        Cli::command().print_help()?;
-        std::process::exit(0);
-    }
-    let command = cli.command.join(" ");
     run(&config, &command)?;
 
     Ok(())
