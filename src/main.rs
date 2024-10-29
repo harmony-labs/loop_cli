@@ -67,7 +67,6 @@ fn main() -> Result<()> {
 
     config.verbose = cli.verbose;
     config.silent = cli.silent;
-    config.parallel = cli.parallel;
     config.add_aliases_to_global_looprc = cli.add_aliases_to_global_looprc;
 
     // If no directories specified, use current and all child directories
