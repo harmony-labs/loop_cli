@@ -19,7 +19,6 @@ loop [OPTIONS] [COMMAND]...
 - `-e, --exclude <DIRECTORIES>`: Specify directories to exclude (adds to config file exclusions)
 - `-v, --verbose`: Enable verbose output
 - `-s, --silent`: Enable silent mode (suppress all output)
-- `--parallel`: Execute commands in parallel
 - `--add-aliases-to-global-looprc`: Add shell aliases to the global `.looprc` file
 
 ### Configuration
@@ -32,7 +31,6 @@ Loop uses a configuration file (default: `.looprc`) in JSON format with the foll
   "ignore": ["dir_to_ignore1", "dir_to_ignore2", ...],
   "verbose": false,
   "silent": false,
-  "parallel": false,
   "add_aliases_to_global_looprc": false
 }
 ```
@@ -42,8 +40,6 @@ Loop uses a configuration file (default: `.looprc`) in JSON format with the foll
 1. **Directory Expansion**: Loop expands the specified directories and their subdirectories, excluding any that match the ignore patterns.
 
 2. **Command Execution**: The specified command is executed in each of the expanded directories.
-
-3. **Parallel Execution**: When the `--parallel` flag is set, commands are executed concurrently across directories.
 
 4. **Alias Support**: Loop supports shell aliases, which can be defined in the global or local `.looprc` file.
 
@@ -61,7 +57,7 @@ Loop uses a configuration file (default: `.looprc`) in JSON format with the foll
 2. Load configuration (from file or defaults)
 3. Expand directories based on configuration and CLI options
 4. Load aliases from global and local `.looprc` files
-5. Execute the specified command in each directory (sequentially or in parallel)
+5. Execute the specified command in each directory
 6. Collect and summarize results
 7. Display summary and any error details
 

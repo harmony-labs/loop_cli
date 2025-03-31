@@ -22,7 +22,6 @@ struct Cli {
     #[arg(short, long, help = "Specify directories to include (overrides config file)")]
     include: Option<Vec<String>>,
 
-
     #[arg(short, long, help = "Enable silent mode (suppress all output)")]
     silent: bool,
 
