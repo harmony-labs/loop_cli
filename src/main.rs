@@ -1,13 +1,16 @@
 use anyhow::Result;
-use clap::{Parser, CommandFactory};
+use clap::{CommandFactory, Parser};
+use colored::*;
 use loop_lib::{expand_directories, parse_config, run, LoopConfig};
 use std::path::PathBuf;
-use colored::*;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
-    #[arg(long, help = "Add shell aliases to the global .looprc file, enabling aliases within commands")]
+    #[arg(
+        long,
+        help = "Add shell aliases to the global .looprc file, enabling aliases within commands"
+    )]
     add_aliases_to_global_looprc: bool,
 
     #[arg(trailing_var_arg = true)]
@@ -16,10 +19,18 @@ struct Cli {
     #[arg(short, long, value_name = "FILE")]
     config: Option<PathBuf>,
 
-    #[arg(short, long, help = "Specify directories to exclude (adds to config file exclusions)")]
+    #[arg(
+        short,
+        long,
+        help = "Specify directories to exclude (adds to config file exclusions)"
+    )]
     exclude: Option<Vec<String>>,
 
-    #[arg(short, long, help = "Specify directories to include (overrides config file)")]
+    #[arg(
+        short,
+        long,
+        help = "Specify directories to include (overrides config file)"
+    )]
     include: Option<Vec<String>>,
 
     #[arg(short, long, help = "Enable silent mode (suppress all output)")]
@@ -31,7 +42,7 @@ struct Cli {
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
-    
+
     let config_path = cli.config.unwrap_or_else(|| PathBuf::from(".looprc"));
 
     if cli.command.is_empty() {
@@ -47,7 +58,7 @@ fn main() -> Result<()> {
     if cli.verbose {
         println!("{}", "Verbose mode enabled".green());
         println!("\nResolved config file path: {}", absolute_path.display());
-        println!("Executing command: {}", command);
+        println!("Executing command: {command}");
     }
 
     let mut config = if config_path.exists() {
