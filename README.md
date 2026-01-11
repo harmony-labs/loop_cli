@@ -1,76 +1,242 @@
-# Loop - Directory Command Execution Tool
+# Loop CLI
 
-Loop is a command-line tool that allows you to execute commands across multiple directories simultaneously. It provides various options for customization and control over the execution process.
+Loop is a command-line tool that executes commands across multiple directories simultaneously. It's the underlying execution engine for `meta` and can also be used as a standalone tool.
 
-## Supported Behavior
+## Installation
 
-### Command-Line Interface
+Loop is installed automatically with `meta`. For standalone use:
 
-Loop uses the following command-line interface:
+```bash
+cargo install --git https://github.com/harmony-labs/meta --bin loop
+```
+
+## Usage
 
 ```
 loop [OPTIONS] [COMMAND]...
 ```
 
-#### Options:
+### Basic Examples
 
-- `-c, --config <FILE>`: Specify a custom configuration file path (default: `.looprc`)
-- `-i, --include <DIRECTORIES>`: Specify directories to include (overrides config file)
-- `-e, --exclude <DIRECTORIES>`: Specify directories to exclude (adds to config file exclusions)
-- `-v, --verbose`: Enable verbose output
-- `-s, --silent`: Enable silent mode (suppress all output)
-- `--add-aliases-to-global-looprc`: Add shell aliases to the global `.looprc` file
+```bash
+# Run git status in all child directories
+loop git status
 
-### Configuration
+# Run npm install in all child directories
+loop npm install
 
-Loop uses a configuration file (default: `.looprc`) in JSON format with the following structure:
+# Run cargo test in all child directories
+loop cargo test
+```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `-c, --config <FILE>` | Custom config file path (default: `.looprc`) |
+| `-i, --include <DIRS>` | Only run in these directories (comma-separated) |
+| `-e, --exclude <DIRS>` | Skip these directories (comma-separated) |
+| `-v, --verbose` | Enable verbose output |
+| `-s, --silent` | Suppress all output except summary |
+| `--add-aliases-to-global-looprc` | Add shell aliases to global config |
+
+### Filtering Directories
+
+```bash
+# Only specific directories
+loop -i api,web git status
+
+# Exclude directories
+loop -e legacy,deprecated npm test
+
+# Combine filters
+loop -i api,web,worker -e api-legacy git pull
+```
+
+## Configuration
+
+Loop uses a `.looprc` file (JSON format) for persistent configuration:
 
 ```json
 {
-  "directories": ["dir1", "dir2", ...],
-  "ignore": ["dir_to_ignore1", "dir_to_ignore2", ...],
+  "directories": ["api", "web", "worker"],
+  "ignore": ["node_modules", "target", ".git"],
   "verbose": false,
-  "silent": false,
-  "add_aliases_to_global_looprc": false
+  "silent": false
 }
 ```
 
-### Functionality
+### Configuration Priority
 
-1. **Directory Expansion**: Loop expands the specified directories and their subdirectories, excluding any that match the ignore patterns.
+1. Command-line arguments (highest priority)
+2. Local `.looprc` in current directory
+3. Global `~/.looprc`
+4. Defaults (all child directories)
 
-2. **Command Execution**: The specified command is executed in each of the expanded directories.
+### Fields
 
-4. **Alias Support**: Loop supports shell aliases, which can be defined in the global or local `.looprc` file.
+| Field | Type | Description |
+|-------|------|-------------|
+| `directories` | `string[]` | Directories to include |
+| `ignore` | `string[]` | Directories to exclude |
+| `verbose` | `bool` | Enable verbose output |
+| `silent` | `bool` | Suppress output |
+| `add_aliases_to_global_looprc` | `bool` | Enable alias support |
 
-5. **Output Control**: 
-   - Verbose mode (`-v, --verbose`) provides additional execution details.
-   - Silent mode (`-s, --silent`) suppresses all output except for the final summary.
+## How It Works
 
-6. **Error Handling**: Loop captures and reports on failed command executions, providing a summary at the end of the run.
-
-7. **Global Alias Management**: The `--add-aliases-to-global-looprc` option allows users to add their shell aliases to the global `.looprc` file.
+1. **Directory Discovery**: Expands target directories based on config and CLI options
+2. **Filtering**: Applies include/exclude rules
+3. **Execution**: Runs the command in each directory
+4. **Output**: Aggregates and displays results with status
 
 ### Execution Flow
 
-1. Parse command-line arguments
-2. Load configuration (from file or defaults)
-3. Expand directories based on configuration and CLI options
-4. Load aliases from global and local `.looprc` files
-5. Execute the specified command in each directory
-6. Collect and summarize results
-7. Display summary and any error details
+```
+loop npm test
+     │
+     ▼
+┌─────────────────┐
+│ Load Config     │
+│ (.looprc)       │
+└─────────────────┘
+     │
+     ▼
+┌─────────────────┐
+│ Expand          │
+│ Directories     │
+└─────────────────┘
+     │
+     ▼
+┌─────────────────┐
+│ Apply Filters   │
+│ (include/exclude)│
+└─────────────────┘
+     │
+     ▼
+┌─────────────────┐
+│ Execute Command │
+│ (per directory) │
+└─────────────────┘
+     │
+     ▼
+┌─────────────────┐
+│ Collect Results │
+│ & Display       │
+└─────────────────┘
+```
+
+## Output Modes
+
+### Default Output
+
+Shows command execution with directory prefixes:
+
+```
+> api
+Tests passed
+
+> web
+Tests passed
+
+> worker
+Tests failed: 2 errors
+
+Summary: 2 succeeded, 1 failed
+```
+
+### Verbose Mode
+
+```bash
+loop -v npm test
+```
+
+Shows additional execution details.
+
+### Silent Mode
+
+```bash
+loop -s npm test
+```
+
+Only shows final summary.
 
 ## Error Handling
 
-Loop provides error handling for various scenarios:
-- Configuration file parsing errors
-- Directory access errors
-- Command execution failures
+Loop continues execution even if a command fails in one directory. After all directories are processed, it shows:
 
-Errors are reported with context to help users identify and resolve issues.
+- Success/failure count
+- Failed directory names
+- Exit codes from failed commands
 
-## Limitations
+Exit code is non-zero if any command failed.
 
-- Loop currently does not support Windows-specific path separators or commands.
-- The tool assumes a Unix-like environment for shell operations and alias handling.
+## Integration with Meta
+
+Loop is the execution engine underlying `meta`. When you run:
+
+```bash
+meta npm install
+```
+
+Meta processes configuration, applies filters, and delegates execution to loop_lib.
+
+### Key Differences
+
+| Feature | `loop` | `meta` |
+|---------|--------|--------|
+| Config format | `.looprc` (JSON) | `.meta`/`.meta.yaml` |
+| Project tags | No | Yes |
+| Plugin system | No | Yes |
+| Git-aware clone | No | Yes (via plugin) |
+| Snapshots | No | Yes |
+| MCP server | No | Yes |
+
+Use `loop` for simple multi-directory execution. Use `meta` for full multi-repository management.
+
+## Advanced Usage
+
+### Shell Aliases
+
+Add aliases to your global config:
+
+```bash
+loop --add-aliases-to-global-looprc
+```
+
+### Combining with Other Tools
+
+```bash
+# Pipe output
+loop git log --oneline -1 | grep -v "^>"
+
+# With xargs
+loop ls | xargs -I{} echo "Dir: {}"
+
+# Conditional execution
+loop npm test && echo "All tests passed"
+```
+
+## Library Usage
+
+Loop is available as a Rust library (`loop_lib`) for programmatic use:
+
+```rust
+use loop_lib::{run, LoopConfig};
+
+let config = LoopConfig {
+    directories: vec!["api".into(), "web".into()],
+    ignore: vec!["node_modules".into()],
+    ..Default::default()
+};
+
+let results = run(&["npm", "test"], &config)?;
+```
+
+See [loop_lib documentation](../loop_lib/) for details.
+
+## See Also
+
+- [Meta CLI Documentation](../README.md)
+- [Loop System Overview](../docs/loop.md)
+- [Architecture Overview](../docs/architecture_overview.md)
