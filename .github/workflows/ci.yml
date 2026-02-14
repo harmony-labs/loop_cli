@@ -30,6 +30,21 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/harmony-labs/loop_lib.git
 
+      - name: Create workspace Cargo.toml
+        shell: bash
+        run: |
+          cat > Cargo.toml << 'EOF'
+          [workspace]
+          members = ["loop_cli", "loop_lib"]
+          resolver = "2"
+
+          [workspace.package]
+          version = "0.1.0"
+          edition = "2021"
+          license = "MIT"
+          repository = "https://github.com/harmony-labs/meta"
+          EOF
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
@@ -55,6 +70,20 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/harmony-labs/loop_lib.git
 
+      - name: Create workspace Cargo.toml
+        run: |
+          cat > Cargo.toml << 'EOF'
+          [workspace]
+          members = ["loop_cli", "loop_lib"]
+          resolver = "2"
+
+          [workspace.package]
+          version = "0.1.0"
+          edition = "2021"
+          license = "MIT"
+          repository = "https://github.com/harmony-labs/meta"
+          EOF
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -75,6 +104,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          path: loop_cli
+
+      - name: Clone dependencies
+        run: |
+          git clone --depth 1 https://github.com/harmony-labs/loop_lib.git
+
+      - name: Create workspace Cargo.toml
+        run: |
+          cat > Cargo.toml << 'EOF'
+          [workspace]
+          members = ["loop_cli", "loop_lib"]
+          resolver = "2"
+
+          [workspace.package]
+          version = "0.1.0"
+          edition = "2021"
+          license = "MIT"
+          repository = "https://github.com/harmony-labs/meta"
+          EOF
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -82,4 +131,5 @@ jobs:
           components: rustfmt
 
       - name: Check formatting
+        working-directory: loop_cli
         run: cargo fmt --all -- --check
